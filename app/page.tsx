@@ -55,7 +55,7 @@ export default function Home() {
         </div>
 
         {showButton && (
-          <a href="/diary" className="mt-6 text-sm text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-500 px-6 py-2.5 rounded-lg transition-all duration-300">
+          <a href="/feed" className="mt-6 text-sm text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-500 px-6 py-2.5 rounded-lg transition-all duration-300">
             Open my diary →
           </a>
         )}

@@ -74,9 +74,10 @@ const trendingStacks = [
   },
 ]
 
-export default function DiaryPage() {
+export default function FeedPage() {
   const [search, setSearch] = useState("")
   const [selected, setSelected] = useState<number | null>(null)
+  const [saved, setSaved] = useState<number[]>([])
 
   const filtered = trendingStacks.filter(
     (s) =>
@@ -84,16 +85,32 @@ export default function DiaryPage() {
       s.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()))
   )
 
-  const selectedStack = trendingStacks.find((s) => s.id === selected)
+  async function startProject(item: typeof trendingStacks[0]) {
+    const res = await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: item.project,
+        description: item.projectDesc,
+        stack: item.tags.join(", ")
+      })
+    })
+    const project = await res.json()
+    setSaved([...saved, item.id])
+    alert(`✅ "${project.title}" saved to your projects!`)
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
 
       {/* Header */}
-      <div className="border-b border-zinc-800 px-8 py-6">
-        <p className="text-zinc-500 text-xs font-mono mb-1">May 2026 · what the market wants right now</p>
-        <h1 className="text-2xl font-semibold">What should you build today, Joy?</h1>
-        <p className="text-zinc-400 text-sm mt-1">Live trending stacks + highly technical project ideas scoped for your level.</p>
+      <div className="border-b border-zinc-800 px-8 py-6 flex items-center justify-between">
+        <div>
+          <p className="text-zinc-500 text-xs font-mono mb-1">May 2026 · what the market wants right now</p>
+          <h1 className="text-2xl font-semibold">What should you build today, Joy?</h1>
+          <p className="text-zinc-400 text-sm mt-1">Live trending stacks + highly technical project ideas scoped for your level.</p>
+        </div>
+        <a href="/" className="text-xs text-zinc-600 hover:text-zinc-400 font-mono">← home</a>
       </div>
 
       <div className="flex min-h-screen">
@@ -120,7 +137,6 @@ export default function DiaryPage() {
                 onClick={() => setSelected(selected === item.id ? null : item.id)}
                 className={`border rounded-xl p-5 cursor-pointer transition-all duration-200 ${item.color} ${selected === item.id ? "ring-1 ring-white/20" : "hover:border-zinc-600"}`}
               >
-                {/* Top row */}
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex items-center gap-3">
                     <span className="text-zinc-600 font-mono text-xs">#{item.rank}</span>
@@ -131,14 +147,10 @@ export default function DiaryPage() {
                   </span>
                 </div>
 
-                {/* Source */}
                 <p className="text-xs text-zinc-500 mb-1">📡 {item.source}</p>
                 <p className="text-xs text-zinc-500 mb-3">💼 {item.jobs}</p>
-
-                {/* Description */}
                 <p className="text-sm text-zinc-300 leading-relaxed mb-3">{item.description}</p>
 
-                {/* Tags */}
                 <div className="flex gap-2 flex-wrap">
                   {item.tags.map((tag) => (
                     <span key={tag} className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded font-mono">
@@ -152,8 +164,12 @@ export default function DiaryPage() {
                     <p className="text-xs text-zinc-500 font-mono mb-1">suggested project</p>
                     <p className="text-sm font-semibold text-white mb-2">🛠 {item.project}</p>
                     <p className="text-sm text-zinc-400 leading-relaxed">{item.projectDesc}</p>
-                    <button className="mt-4 text-xs bg-green-500 hover:bg-green-400 text-black font-semibold px-4 py-2 rounded-lg transition-colors">
-                      Start this project →
+                    <button
+                      onClick={(e) => { e.stopPropagation(); startProject(item) }}
+                      disabled={saved.includes(item.id)}
+                      className="mt-4 text-xs bg-green-500 hover:bg-green-400 disabled:bg-zinc-700 disabled:text-zinc-500 text-black font-semibold px-4 py-2 rounded-lg transition-colors"
+                    >
+                      {saved.includes(item.id) ? "✓ Saved!" : "Start this project →"}
                     </button>
                   </div>
                 )}
@@ -162,14 +178,14 @@ export default function DiaryPage() {
           </div>
         </div>
 
-        {/* Sidebar hint */}
+        {/* Sidebar */}
         <div className="w-64 border-l border-zinc-800 p-6 hidden lg:block">
           <p className="text-xs text-zinc-600 font-mono mb-4">how to use</p>
           <div className="flex flex-col gap-4 text-xs text-zinc-500 leading-relaxed">
             <p>① Browse trending stacks scraped from Google Trends, Threads, and Stack Overflow.</p>
             <p>② Click any card to see a highly technical project idea that covers all the topics.</p>
             <p>③ Use the search bar to filter by your preferred stack.</p>
-            <p>④ Hit "Start this project" to begin tracking your build.</p>
+            <p>④ Hit "Start this project" to save it and begin tracking your build.</p>
           </div>
           <div className="mt-8 pt-6 border-t border-zinc-800">
             <p className="text-xs text-zinc-600 font-mono mb-2">last scraped</p>
